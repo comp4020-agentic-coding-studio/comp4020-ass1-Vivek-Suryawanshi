@@ -17,6 +17,8 @@ const OBJECT_X = { a: 140, b: 240 };
 const SVG_NS = "http://www.w3.org/2000/svg";
 const XLINK_NS = "http://www.w3.org/1999/xlink";
 
+type Prediction = "A" | "B" | "tie";
+
 const SHAPE_IDS: Record<string, string> = {
   Feather: "shape-feather",
   "Sheet of paper, flat": "shape-paper",
@@ -31,6 +33,11 @@ const objectBSelect = document.querySelector<HTMLSelectElement>("#objectB")!;
 const airSelect = document.querySelector<HTMLSelectElement>("#airSetting")!;
 const dropButton = document.querySelector<HTMLButtonElement>("#dropButton")!;
 const resetButton = document.querySelector<HTMLButtonElement>("#resetButton")!;
+const predictPanel = document.querySelector<HTMLElement>("#predict")!;
+const predictButtons = Array.from(
+  predictPanel.querySelectorAll<HTMLButtonElement>("button[data-choice]"),
+);
+const predictFeedback = document.querySelector<HTMLElement>("#predict-feedback")!;
 
 const sceneEl = document.querySelector<SVGSVGElement>("#scene")!;
 const sceneDesc = document.querySelector<SVGDescElement>("#sceneDesc")!;
@@ -152,6 +159,45 @@ function updateAirNote(air: AirSetting) {
       : "Air resistance depends on area, weight depends on mass — what matters is the ratio between them.";
 }
 
+function currentSetupKey(): string {
+  return `${objectASelect.selectedIndex}-${objectBSelect.selectedIndex}-${airSelect.selectedIndex}`;
+}
+
+function actualWinner(landTimeA: number, landTimeB: number): Prediction {
+  const EPSILON = 1e-9;
+  if (Math.abs(landTimeA - landTimeB) < EPSILON) return "tie";
+  return landTimeA < landTimeB ? "A" : "B";
+}
+
+function buildFeedback(
+  prediction: Prediction,
+  winner: Prediction,
+  objA: FallingObject,
+  objB: FallingObject,
+  air: AirSetting,
+): string {
+  const correct = prediction === winner;
+  const verdict = correct ? "Right" : "Wrong";
+
+  if (winner === "tie") {
+    return air.airDensity === 0
+      ? `${verdict} — no air means no drag, so mass doesn't matter: they landed together.`
+      : `${verdict} — matching mass-to-area ratios, so they landed together.`;
+  }
+
+  const winnerObj = winner === "A" ? objA : objB;
+  const loserObj = winner === "A" ? objB : objA;
+  const winnerName = winnerObj.name.toLowerCase();
+  const pickedHeavier = correct && winnerObj.mass > loserObj.mass;
+
+  if (correct) {
+    return pickedHeavier
+      ? `${verdict} — but it's the ${winnerName}'s mass-to-area ratio that won it, not its extra mass.`
+      : `${verdict} — the ${winnerName} landed first because its mass-to-area ratio is higher.`;
+  }
+  return `${verdict} — the ${winnerName} landed first: its mass-to-area ratio is higher, not just its mass.`;
+}
+
 const TRAIL_DURATION = 0.5; // seconds a trail dot stays visible
 const TRAIL_MIN_GAP = 0.03; // seconds between spawned dots
 const TRAIL_POOL_SIZE = Math.ceil(TRAIL_DURATION / TRAIL_MIN_GAP) + 2;
@@ -213,6 +259,9 @@ const trailB = new Trail(trailBGroup, OBJECT_X.b, 5);
 let animationFrame: number | null = null;
 let startTime: number | null = null;
 let dropping = false;
+let awaitingPrediction = false;
+let prediction: Prediction | null = null;
+let lastAnsweredSetupKey: string | null = null;
 
 function render(
   objA: FallingObject,
@@ -246,6 +295,19 @@ function setControlsDisabled(disabled: boolean) {
   dropButton.disabled = disabled;
 }
 
+function showPredictPanel() {
+  awaitingPrediction = true;
+  setControlsDisabled(true);
+  predictFeedback.textContent = "";
+  predictPanel.hidden = false;
+  predictButtons[0]?.focus();
+}
+
+function hidePredictPanel() {
+  awaitingPrediction = false;
+  predictPanel.hidden = true;
+}
+
 function step(
   objA: FallingObject,
   objB: FallingObject,
@@ -267,11 +329,19 @@ function step(
     dropping = false;
     setControlsDisabled(false);
     updateDescription("landed");
+    if (prediction !== null) {
+      predictFeedback.textContent = buildFeedback(
+        prediction,
+        actualWinner(landTimeA, landTimeB),
+        objA,
+        objB,
+        air,
+      );
+    }
   }
 }
 
-function drop() {
-  if (dropping) return;
+function startFall() {
   dropping = true;
   setControlsDisabled(true);
   updateDescription("falling");
@@ -288,6 +358,16 @@ function drop() {
   );
 }
 
+function drop() {
+  if (dropping || awaitingPrediction) return;
+
+  if (currentSetupKey() === lastAnsweredSetupKey) {
+    startFall();
+    return;
+  }
+  showPredictPanel();
+}
+
 function reset() {
   if (animationFrame !== null) {
     cancelAnimationFrame(animationFrame);
@@ -295,7 +375,9 @@ function reset() {
   }
   dropping = false;
   startTime = null;
+  if (awaitingPrediction) hidePredictPanel();
   setControlsDisabled(false);
+  predictFeedback.textContent = "";
 
   positionShape(shapeA, OBJECT_X.a, 0);
   positionShape(shapeB, OBJECT_X.b, 0);
@@ -312,20 +394,32 @@ objectASelect.addEventListener("change", () => {
   setShape(useA, currentObjectA());
   updateFacts(currentObjectA(), currentObjectB(), currentAir());
   updateDescription("ready");
+  predictFeedback.textContent = "";
 });
 objectBSelect.addEventListener("change", () => {
   setShape(useB, currentObjectB());
   updateFacts(currentObjectA(), currentObjectB(), currentAir());
   updateDescription("ready");
+  predictFeedback.textContent = "";
 });
 airSelect.addEventListener("change", () => {
   updateAirVisual(currentAir());
   updateFacts(currentObjectA(), currentObjectB(), currentAir());
   updateAirNote(currentAir());
   updateDescription("ready");
+  predictFeedback.textContent = "";
 });
 dropButton.addEventListener("click", drop);
 resetButton.addEventListener("click", reset);
+
+for (const button of predictButtons) {
+  button.addEventListener("click", () => {
+    prediction = button.dataset.choice as Prediction;
+    lastAnsweredSetupKey = currentSetupKey();
+    hidePredictPanel();
+    startFall();
+  });
+}
 
 setShape(useA, currentObjectA());
 setShape(useB, currentObjectB());

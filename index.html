@@ -41,7 +41,18 @@
           <button type="button" id="dropButton">Drop</button>
           <button type="button" id="resetButton">Reset</button>
         </div>
+
+        <div class="predict" id="predict" hidden>
+          <p id="predict-label">Which lands first?</p>
+          <div class="predict-options" role="group" aria-labelledby="predict-label">
+            <button type="button" data-choice="A">Object A</button>
+            <button type="button" data-choice="B">Object B</button>
+            <button type="button" data-choice="tie">They tie</button>
+          </div>
+        </div>
       </fieldset>
+
+      <p id="predict-feedback" aria-live="polite"></p>
 
       <div class="stage">
         <div class="scene-wrap">

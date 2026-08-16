@@ -73,13 +73,40 @@ a {
   padding: 0.35rem 0.5rem;
 }
 
+.predict {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+}
+
+.predict p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.predict-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#predict-feedback {
+  min-height: 1.5rem;
+  font-weight: 600;
+}
+
 .control-buttons {
   flex-direction: row;
   align-items: center;
   gap: 0.75rem;
 }
 
-.control-buttons button {
+.control-buttons button,
+.predict-options button {
   font-size: 1rem;
   padding: 0.5rem 1.25rem;
   border: 2px solid var(--ink);
@@ -92,6 +119,11 @@ a {
 .control-buttons button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.predict-options button:hover {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .control-buttons button:hover:not(:disabled) {
