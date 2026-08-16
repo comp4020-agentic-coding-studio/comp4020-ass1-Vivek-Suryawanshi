@@ -236,3 +236,111 @@ go. The numbers are the evidence.
   there's a reason DOM won't do it.
 - Semantic HTML, headings in order, real buttons and labels.
 - No text baked into images.
+
+## This prototype: why heavy things don't fall faster
+
+I'm building an interactive explainer about terminal velocity. The visitor
+picks two objects, drops them, and watches which one lands first. Then they
+take the air away and watch them land together.
+
+The point I'm making: most people think heavier things fall faster. They
+don't. A hammer beats a feather because of its mass-to-area ratio, not its
+weight, and with no air they're identical.
+
+### Where the numbers come from
+
+`docs/physics-facts.md` is the only source. Every mass, area, drag
+coefficient, gravity value and air density comes from that file. Don't
+calculate a new one, don't take one from memory, and don't search the web
+for it. If the simulation needs a number that isn't in there, stop and tell
+me.
+
+The same goes for the history. The Apollo 15 hammer and feather drop is real
+and it's in the file. The Galileo Leaning Tower story probably isn't true, so
+don't write it as if it happened.
+
+### The physics
+
+Use the closed-form solution in the facts file — tanh for velocity, ln cosh
+for distance. Don't step the motion forward frame by frame. Stepping drifts,
+and it gives different answers on different machines, which is not what I
+want in something that's supposed to teach the physics correctly.
+
+When air density is zero the closed form breaks, so use the vacuum equations
+in the file instead.
+
+The five sanity checks at the end of the facts file should be tests. They're
+things that are true of the physics, so if the code is right they'll pass.
+
+### Scope
+
+Three controls, nothing else:
+
+- pick object A
+- pick object B
+- air: Earth, thin air at 5000 m, or Moon
+
+Plus a drop button and a reset.
+
+The drop is 5 metres and it runs in real time. No speed slider, no zoom, no
+extra sliders for mass or area. The brief says one idea and nothing else, and
+every extra control makes the comparison harder to see.
+
+Nothing reaches terminal velocity in 5 metres. That's true of most falls and
+worth saying on the page rather than hiding.
+
+### What the visitor should end up understanding
+
+That the answer changes when the air goes away. If someone drops a hammer and
+a feather on Earth, then on the Moon, and sees why, the page has done its job.
+
+Show the numbers while it falls — speed, and how far each object has left to
+go. The numbers are the evidence.
+
+### How it should look
+
+Draw the scene as inline SVG, not canvas. It scales properly between phone
+and desktop, I can style it with CSS, and any text inside it stays real text
+instead of pixels.
+
+I want this to look like a piece of science writing, not a physics lab demo.
+Editorial, not utilitarian.
+
+- Dark scene, light page. The falling area is a deep near-black panel; the
+  text around it sits on a warm off-white. The contrast between them is the
+  main visual move.
+- One accent colour for object A, a second for object B, used consistently
+  everywhere — the shape, its label, its readout, its trail. The colour is
+  how you tell them apart, so it has to be the same colour in every place
+  that object appears.
+- Each object leaves a faint trail behind it as it falls, fading out. That's
+  what makes the difference between them visible rather than just felt.
+- Height markings down the side of the scene — 5 m at the top, 0 at the
+  bottom, marked every metre, so the fall has a scale.
+- Big numbers. The live speed readout should be large enough to read from
+  across a room, in the object's own colour.
+- The two objects are simple geometric shapes, distinguishable by silhouette
+  as well as colour — so it still works if you can't tell the colours apart.
+- Type: one strong headline, generous spacing, nothing cramped. No
+  gradients, no shadows, no rounded cards.
+
+### Reduced motion
+
+If `prefers-reduced-motion` is set, don't just remove the animation — the
+animation is the explanation, so removing it leaves nothing.
+
+Instead draw the fall as a strobe: both objects shown at fixed time
+intervals down the scene, like a multiple-exposure photo, with the times
+labelled. Same information, all visible at once, nothing moving.
+
+### Build rules
+
+- Marked live at 1920x1080 and 390x844, both counting fully. Start at 390px.
+- The marker will use it for a minute, resize the window mid-drop, and tab
+  through it with the keyboard. All three need to work. Resizing mid-fall
+  must not break the animation or reset it.
+- Keyboard accessible throughout. Every control reachable by tab, with a
+  visible focus style.
+- Plain TypeScript. No frameworks, no animation libraries.
+- Semantic HTML, headings in order, real buttons and labels.
+- No text baked into images.
