@@ -39,7 +39,8 @@ Writing those tests, it stopped and told me my fifth check was ambiguous. I'd
 said a 2 m drop takes 0.64 s "on Earth", but that only holds with no air —
 with real air it depends on the object, which is the point of the whole page.
 It asked instead of picking one quietly. I fixed the facts file rather than
-just the test, because the ambiguity was mine.
+just the test, because the ambiguity was mine
+([`84c75b3`](../../commit/84c75b3))..
 
 **I made the page catch people being wrong.**
 The version I shipped first was correct and did nothing with it: you watched
