@@ -118,4 +118,6 @@ turning into tests.
    sqrt(2), not by 2.
 4. Drop something from low enough and it never reaches terminal velocity at
    all — it hits the ground still speeding up. Worth showing.
-5. On the Moon a 2 m drop takes about 1.6 s, against about 0.64 s on Earth.
+5. On the Moon a 2 m drop takes about 1.6 s. The same drop with Earth
+   gravity and no air takes about 0.64 s. With real air it depends on the
+   object, which is the whole point.
