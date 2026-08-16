@@ -235,6 +235,24 @@ a {
   fill: var(--accent-b);
 }
 
+.strobe-mark {
+  opacity: 0.45;
+}
+
+.strobe-label {
+  font-size: 12px;
+  font-family: system-ui, sans-serif;
+  dominant-baseline: middle;
+}
+
+#strobe-a text {
+  fill: var(--accent-a);
+}
+
+#strobe-b text {
+  fill: var(--accent-b);
+}
+
 #readouts {
   flex: 1 1 40%;
   min-width: 0;

@@ -47,6 +47,8 @@ const useA = document.querySelector<SVGUseElement>("#useA")!;
 const useB = document.querySelector<SVGUseElement>("#useB")!;
 const trailAGroup = document.querySelector<SVGGElement>("#trail-a")!;
 const trailBGroup = document.querySelector<SVGGElement>("#trail-b")!;
+const strobeAGroup = document.querySelector<SVGGElement>("#strobe-a")!;
+const strobeBGroup = document.querySelector<SVGGElement>("#strobe-b")!;
 
 const speedA = document.querySelector<HTMLElement>("#speedA")!;
 const speedB = document.querySelector<HTMLElement>("#speedB")!;
@@ -157,6 +159,59 @@ function updateAirNote(air: AirSetting) {
     air.airDensity === 0
       ? "No air means no drag, so only gravity acts, and gravity doesn't care about mass."
       : "Air resistance depends on area, weight depends on mass — what matters is the ratio between them.";
+}
+
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function prefersReducedMotion(): boolean {
+  const override = new URLSearchParams(window.location.search).get("reduced-motion");
+  if (override !== null) return override !== "0";
+  return reducedMotionQuery.matches;
+}
+
+const STROBE_INTERVALS = 6; // flashes across the longer fall, so 7 marks including start and landing
+
+function buildStrobeGrid(maxTime: number): number[] {
+  return Array.from({ length: STROBE_INTERVALS + 1 }, (_, i) => (maxTime * i) / STROBE_INTERVALS);
+}
+
+function clipToLandTime(grid: number[], landTime: number): number[] {
+  const EPSILON = 1e-9;
+  const clipped = grid.filter((t) => t <= landTime + EPSILON);
+  const last = clipped[clipped.length - 1];
+  if (last === undefined || Math.abs(last - landTime) > EPSILON) clipped.push(landTime);
+  return clipped;
+}
+
+function renderStrobeMarks(
+  group: SVGGElement,
+  x: number,
+  labelDx: number,
+  shapeId: string,
+  object: FallingObject,
+  air: AirSetting,
+  times: number[],
+) {
+  group.replaceChildren();
+  for (const t of times) {
+    const distance = Math.min(distanceAt(object, air.airDensity, air.gravity, t), DROP_HEIGHT);
+    const y = feetY(distance);
+
+    const mark = document.createElementNS(SVG_NS, "use");
+    mark.setAttribute("class", "strobe-mark");
+    mark.setAttribute("href", `#${shapeId}`);
+    mark.setAttributeNS(XLINK_NS, "href", `#${shapeId}`);
+    mark.setAttribute("transform", `translate(${x}, ${y})`);
+    group.appendChild(mark);
+
+    const label = document.createElementNS(SVG_NS, "text");
+    label.setAttribute("class", "strobe-label");
+    label.setAttribute("x", String(x + labelDx));
+    label.setAttribute("y", String(y));
+    label.setAttribute("text-anchor", labelDx < 0 ? "end" : "start");
+    label.textContent = formatTime(t);
+    group.appendChild(label);
+  }
 }
 
 function currentSetupKey(): string {
@@ -345,6 +400,10 @@ function startFall() {
   dropping = true;
   setControlsDisabled(true);
   updateDescription("falling");
+  strobeAGroup.replaceChildren();
+  strobeBGroup.replaceChildren();
+  trailA.reset();
+  trailB.reset();
 
   const objA = currentObjectA();
   const objB = currentObjectB();
@@ -358,11 +417,72 @@ function startFall() {
   );
 }
 
+function startStrobe() {
+  dropping = false;
+  setControlsDisabled(false);
+  trailA.reset();
+  trailB.reset();
+
+  const objA = currentObjectA();
+  const objB = currentObjectB();
+  const air = currentAir();
+  const landTimeA = timeToFall(objA, air.airDensity, air.gravity, DROP_HEIGHT);
+  const landTimeB = timeToFall(objB, air.airDensity, air.gravity, DROP_HEIGHT);
+  const grid = buildStrobeGrid(Math.max(landTimeA, landTimeB));
+
+  renderStrobeMarks(
+    strobeAGroup,
+    OBJECT_X.a,
+    -24,
+    SHAPE_IDS[objA.name]!,
+    objA,
+    air,
+    clipToLandTime(grid, landTimeA),
+  );
+  renderStrobeMarks(
+    strobeBGroup,
+    OBJECT_X.b,
+    24,
+    SHAPE_IDS[objB.name]!,
+    objB,
+    air,
+    clipToLandTime(grid, landTimeB),
+  );
+
+  positionShape(shapeA, OBJECT_X.a, DROP_HEIGHT);
+  positionShape(shapeB, OBJECT_X.b, DROP_HEIGHT);
+
+  speedA.textContent = formatSpeed(velocityAt(objA, air.airDensity, air.gravity, landTimeA));
+  speedB.textContent = formatSpeed(velocityAt(objB, air.airDensity, air.gravity, landTimeB));
+  landedA.textContent = formatTime(landTimeA);
+  landedB.textContent = formatTime(landTimeB);
+
+  updateDescription("landed");
+
+  if (prediction !== null) {
+    predictFeedback.textContent = buildFeedback(
+      prediction,
+      actualWinner(landTimeA, landTimeB),
+      objA,
+      objB,
+      air,
+    );
+  }
+}
+
+function beginFall() {
+  if (prefersReducedMotion()) {
+    startStrobe();
+  } else {
+    startFall();
+  }
+}
+
 function drop() {
   if (dropping || awaitingPrediction) return;
 
   if (currentSetupKey() === lastAnsweredSetupKey) {
-    startFall();
+    beginFall();
     return;
   }
   showPredictPanel();
@@ -378,6 +498,8 @@ function reset() {
   if (awaitingPrediction) hidePredictPanel();
   setControlsDisabled(false);
   predictFeedback.textContent = "";
+  strobeAGroup.replaceChildren();
+  strobeBGroup.replaceChildren();
 
   positionShape(shapeA, OBJECT_X.a, 0);
   positionShape(shapeB, OBJECT_X.b, 0);
@@ -417,7 +539,7 @@ for (const button of predictButtons) {
     prediction = button.dataset.choice as Prediction;
     lastAnsweredSetupKey = currentSetupKey();
     hidePredictPanel();
-    startFall();
+    beginFall();
   });
 }
 
