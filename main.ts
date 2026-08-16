@@ -59,6 +59,8 @@ const massA = document.querySelector<HTMLElement>("#massA")!;
 const massB = document.querySelector<HTMLElement>("#massB")!;
 const areaA = document.querySelector<HTMLElement>("#areaA")!;
 const areaB = document.querySelector<HTMLElement>("#areaB")!;
+const dragA = document.querySelector<HTMLElement>("#dragA")!;
+const dragB = document.querySelector<HTMLElement>("#dragB")!;
 const ratioA = document.querySelector<HTMLElement>("#ratioA")!;
 const ratioB = document.querySelector<HTMLElement>("#ratioB")!;
 const vtA = document.querySelector<HTMLElement>("#vtA")!;
@@ -137,6 +139,10 @@ function formatQuantity(value: number, unit: string): string {
   return `${Number(value.toPrecision(3))} ${unit}`;
 }
 
+function formatDragCoefficient(value: number): string {
+  return String(Number(value.toPrecision(3)));
+}
+
 function formatTerminalVelocity(object: FallingObject, air: AirSetting): string {
   if (air.airDensity === 0) return "none — no air";
   return formatSpeed(terminalVelocity(object, air.airDensity, air.gravity));
@@ -145,11 +151,13 @@ function formatTerminalVelocity(object: FallingObject, air: AirSetting): string 
 function updateFacts(objA: FallingObject, objB: FallingObject, air: AirSetting) {
   massA.textContent = formatQuantity(objA.mass, "kg");
   areaA.textContent = formatQuantity(objA.area, "m²");
+  dragA.textContent = formatDragCoefficient(objA.dragCoefficient);
   ratioA.textContent = formatQuantity(objA.mass / objA.area, "kg/m²");
   vtA.textContent = formatTerminalVelocity(objA, air);
 
   massB.textContent = formatQuantity(objB.mass, "kg");
   areaB.textContent = formatQuantity(objB.area, "m²");
+  dragB.textContent = formatDragCoefficient(objB.dragCoefficient);
   ratioB.textContent = formatQuantity(objB.mass / objB.area, "kg/m²");
   vtB.textContent = formatTerminalVelocity(objB, air);
 }
@@ -237,7 +245,7 @@ function buildFeedback(
   if (winner === "tie") {
     return air.airDensity === 0
       ? `${verdict} — no air means no drag, so mass doesn't matter: they landed together.`
-      : `${verdict} — matching mass-to-area ratios, so they landed together.`;
+      : `${verdict} — they meet the same drag for their weight, so they landed together.`;
   }
 
   const winnerObj = winner === "A" ? objA : objB;
@@ -247,10 +255,10 @@ function buildFeedback(
 
   if (correct) {
     return pickedHeavier
-      ? `${verdict} — but it's the ${winnerName}'s mass-to-area ratio that won it, not its extra mass.`
-      : `${verdict} — the ${winnerName} landed first because its mass-to-area ratio is higher.`;
+      ? `${verdict} — but it's because the ${winnerName} meets less drag for its weight, not because it's heavier.`
+      : `${verdict} — the ${winnerName} landed first because it meets less drag for its weight.`;
   }
-  return `${verdict} — the ${winnerName} landed first: its mass-to-area ratio is higher, not just its mass.`;
+  return `${verdict} — the ${winnerName} landed first because it meets less drag for its weight, not just because of mass.`;
 }
 
 const TRAIL_DURATION = 0.5; // seconds a trail dot stays visible
@@ -515,21 +523,18 @@ function reset() {
 objectASelect.addEventListener("change", () => {
   setShape(useA, currentObjectA());
   updateFacts(currentObjectA(), currentObjectB(), currentAir());
-  updateDescription("ready");
-  predictFeedback.textContent = "";
+  reset();
 });
 objectBSelect.addEventListener("change", () => {
   setShape(useB, currentObjectB());
   updateFacts(currentObjectA(), currentObjectB(), currentAir());
-  updateDescription("ready");
-  predictFeedback.textContent = "";
+  reset();
 });
 airSelect.addEventListener("change", () => {
   updateAirVisual(currentAir());
   updateFacts(currentObjectA(), currentObjectB(), currentAir());
   updateAirNote(currentAir());
-  updateDescription("ready");
-  predictFeedback.textContent = "";
+  reset();
 });
 dropButton.addEventListener("click", drop);
 resetButton.addEventListener("click", reset);
@@ -540,6 +545,7 @@ for (const button of predictButtons) {
     lastAnsweredSetupKey = currentSetupKey();
     hidePredictPanel();
     beginFall();
+    resetButton.focus();
   });
 }
 
