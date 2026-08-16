@@ -1,16 +1,286 @@
+:root {
+  --paper: #faf6ec;
+  --ink: #17181c;
+  --accent-a: #e8892f;
+  --accent-b: #2fb6a8;
+  --panel: #0a0d16;
+  --ground-earth: #3f7d32;
+  --ground-earth-line: #2a5720;
+  --ground-moon: #86847c;
+  --ground-moon-line: #67655e;
+  --tick: #d8dee8;
+}
+
 body {
   margin: 0;
   padding: 2rem;
   font-family: system-ui, sans-serif;
   line-height: 1.6;
-  color: #1a1a1a;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+@media (width <= 480px) {
+  body {
+    padding: 1rem;
+  }
 }
 
 main {
-  max-width: 40rem;
+  max-width: 60rem;
   margin: 0 auto;
 }
 
 a {
   color: #0b5fff;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent-b);
+  outline-offset: 2px;
+}
+
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: flex-end;
+  border: 1px solid #d8d0bd;
+  border-radius: 4px;
+  padding: 1rem 1.25rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+#controls legend {
+  font-weight: 600;
+  padding: 0 0.4rem;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.control label {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.control select {
+  font-size: 1rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.control-buttons {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.control-buttons button {
+  font-size: 1rem;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.control-buttons button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.control-buttons button:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 50%;
+  margin-right: 0.4em;
+}
+
+.swatch-a {
+  background: var(--accent-a);
+}
+
+.swatch-b {
+  background: var(--accent-b);
+}
+
+.stage {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.scene-wrap {
+  flex: 1 1 60%;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+#scene {
+  width: 100%;
+  max-width: 26rem;
+  aspect-ratio: 320 / 604;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+#panel {
+  fill: var(--panel);
+}
+
+#scene[data-air="earth"] #sky {
+  fill: url("#sky-earth");
+}
+
+#scene[data-air="moon"] #sky {
+  fill: url("#sky-moon");
+}
+
+#scene[data-air="earth"] #ground {
+  fill: var(--ground-earth);
+}
+
+#scene[data-air="moon"] #ground {
+  fill: var(--ground-moon);
+}
+
+#scene[data-air="earth"] #ground-line {
+  stroke: var(--ground-earth-line);
+}
+
+#scene[data-air="moon"] #ground-line {
+  stroke: var(--ground-moon-line);
+}
+
+#scene[data-air="earth"] #stars {
+  display: none;
+}
+
+#scene[data-air="moon"] #stars {
+  display: block;
+}
+
+#stars circle {
+  fill: #f4f6fb;
+  opacity: 0.85;
+}
+
+.tick line {
+  stroke: var(--tick);
+  stroke-width: 1.5;
+}
+
+.tick text {
+  fill: var(--tick);
+  font-size: 18px;
+  text-anchor: end;
+  font-family: system-ui, sans-serif;
+}
+
+.trail-dot {
+  fill: var(--panel);
+}
+
+#trail-a .trail-dot {
+  fill: var(--accent-a);
+}
+
+#trail-b .trail-dot {
+  fill: var(--accent-b);
+}
+
+#readouts {
+  flex: 1 1 40%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.readout {
+  margin: 0;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.15rem 0.75rem;
+  margin: -0.75rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid transparent;
+  font-size: 0.85rem;
+}
+
+.facts-a {
+  border-left-color: var(--accent-a);
+}
+
+.facts-b {
+  border-left-color: var(--accent-b);
+}
+
+.facts dt {
+  opacity: 0.7;
+}
+
+.facts dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.readout dt {
+  font-size: clamp(0.75rem, 2vw, 0.95rem);
+  color: var(--ink);
+  opacity: 0.75;
+}
+
+.readout dt:first-of-type {
+  font-weight: 600;
+  opacity: 1;
+}
+
+.readout dd {
+  margin: 0 0 0.5rem;
+}
+
+.readout dd:first-of-type {
+  font-size: clamp(1.5rem, 6vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.readout-a dd:first-of-type {
+  color: var(--accent-a);
+}
+
+.readout-b dd:first-of-type {
+  color: var(--accent-b);
+}
+
+.readout dd:last-of-type {
+  font-size: clamp(0.9rem, 2.4vw, 1.1rem);
+}
+
+#air-note {
+  max-width: 40rem;
+  font-size: 1rem;
+  font-style: italic;
+  opacity: 0.85;
 }

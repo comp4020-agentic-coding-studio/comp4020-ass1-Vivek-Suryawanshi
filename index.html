@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>COMP4020 prototype</title>
+    <title>Why heavy things don't fall faster</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,11 +13,192 @@
       </nav>
     </header>
     <main>
-      <h1>COMP4020 prototype</h1>
-      <p data-testid="intro">
-        Replace this with your prototype. This week's brief is on the course website;
-        <code>spec/README.md</code> explains how the checks in this repo relate to it.
+      <h1>Why heavy things don't fall faster</h1>
+      <p>
+        Pick two objects and drop them. Then take the air away and drop them
+        again — without it, mass doesn't matter.
       </p>
+
+      <fieldset id="controls">
+        <legend>Choose two objects and an air setting</legend>
+
+        <div class="control">
+          <label for="objectA"><span class="swatch swatch-a" aria-hidden="true"></span>Object A</label>
+          <select id="objectA" name="objectA"></select>
+        </div>
+
+        <div class="control">
+          <label for="objectB"><span class="swatch swatch-b" aria-hidden="true"></span>Object B</label>
+          <select id="objectB" name="objectB"></select>
+        </div>
+
+        <div class="control">
+          <label for="airSetting">Air</label>
+          <select id="airSetting" name="airSetting"></select>
+        </div>
+
+        <div class="control control-buttons">
+          <button type="button" id="dropButton">Drop</button>
+          <button type="button" id="resetButton">Reset</button>
+        </div>
+      </fieldset>
+
+      <div class="stage">
+        <div class="scene-wrap">
+          <svg
+            id="scene"
+            data-air="earth"
+            viewBox="0 0 320 604"
+            role="img"
+            aria-labelledby="sceneTitle sceneDesc"
+          >
+            <title id="sceneTitle">The falling scene</title>
+            <desc id="sceneDesc">Object A and object B have not been dropped yet.</desc>
+
+            <defs>
+              <linearGradient id="sky-earth" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0d1b3a" />
+                <stop offset="100%" stop-color="#a9d3ec" />
+              </linearGradient>
+              <linearGradient id="sky-moon" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#050507" />
+                <stop offset="100%" stop-color="#0d0e14" />
+              </linearGradient>
+
+              <g id="shape-hammer">
+                <rect x="-14" y="-40" width="28" height="12" rx="2" fill="#9aa0a6" />
+                <rect x="-3" y="-30" width="6" height="30" rx="2" fill="#8a5a34" />
+              </g>
+
+              <g id="shape-feather">
+                <path
+                  d="M0,0 C -11,-11 -9,-31 0,-41 C 9,-31 11,-11 0,0 Z"
+                  fill="#f2ede1"
+                  stroke="#cfc7b3"
+                  stroke-width="1"
+                />
+                <line x1="0" y1="-1" x2="0" y2="-38" stroke="#c9c2b0" stroke-width="1.5" />
+              </g>
+
+              <g id="shape-pingpong">
+                <circle cx="0" cy="-8" r="8" fill="#ffffff" stroke="#d9d9d9" stroke-width="1" />
+                <path
+                  d="M 5.5,-3 A 8 8 0 0 0 3,-14.5"
+                  fill="none"
+                  stroke="#cfcfcf"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </g>
+
+              <g id="shape-bowlingball">
+                <circle cx="0" cy="-14" r="14" fill="#1c2230" />
+                <circle cx="-3" cy="-19" r="1.8" fill="#565c6b" />
+                <circle cx="2.5" cy="-19" r="1.8" fill="#565c6b" />
+                <circle cx="-0.3" cy="-14.5" r="1.8" fill="#565c6b" />
+              </g>
+
+              <g id="shape-paper">
+                <rect
+                  x="-14"
+                  y="-22"
+                  width="28"
+                  height="22"
+                  fill="#f7f2e3"
+                  stroke="#ddd4bd"
+                  stroke-width="1"
+                  transform="rotate(-8)"
+                />
+              </g>
+
+              <g id="shape-skydiver">
+                <line x1="-6" y1="-25" x2="-20" y2="-32" stroke="#2e4057" stroke-width="4" stroke-linecap="round" />
+                <line x1="6" y1="-25" x2="20" y2="-32" stroke="#2e4057" stroke-width="4" stroke-linecap="round" />
+                <line x1="-4" y1="-13" x2="-14" y2="-2" stroke="#2e4057" stroke-width="4" stroke-linecap="round" />
+                <line x1="4" y1="-13" x2="14" y2="-2" stroke="#2e4057" stroke-width="4" stroke-linecap="round" />
+                <rect x="-6" y="-29" width="12" height="16" rx="4" fill="#2e4057" />
+                <circle cx="0" cy="-34" r="5" fill="#e0b189" />
+              </g>
+            </defs>
+
+            <rect id="panel" x="0" y="0" width="320" height="604" />
+
+            <g id="ticks">
+              <g class="tick"><line x1="40" y1="44" x2="54" y2="44" /><text x="36" y="48">5</text></g>
+              <g class="tick"><line x1="40" y1="144" x2="54" y2="144" /><text x="36" y="148">4</text></g>
+              <g class="tick"><line x1="40" y1="244" x2="54" y2="244" /><text x="36" y="248">3</text></g>
+              <g class="tick"><line x1="40" y1="344" x2="54" y2="344" /><text x="36" y="348">2</text></g>
+              <g class="tick"><line x1="40" y1="444" x2="54" y2="444" /><text x="36" y="448">1</text></g>
+              <g class="tick"><line x1="40" y1="544" x2="54" y2="544" /><text x="36" y="548">0</text></g>
+            </g>
+
+            <rect id="sky" x="56" y="0" width="264" height="544" />
+
+            <g id="stars">
+              <circle cx="80" cy="40" r="1.4" />
+              <circle cx="120" cy="90" r="1.8" />
+              <circle cx="170" cy="50" r="1.2" />
+              <circle cx="210" cy="110" r="1.6" />
+              <circle cx="260" cy="70" r="1.3" />
+              <circle cx="295" cy="140" r="1.8" />
+              <circle cx="90" cy="180" r="1.2" />
+              <circle cx="240" cy="200" r="1.4" />
+              <circle cx="300" cy="260" r="1.2" />
+              <circle cx="70" cy="300" r="1.6" />
+            </g>
+
+            <g id="trail-b"></g>
+            <g id="trail-a"></g>
+
+            <g id="shapeA">
+              <use id="useA" href="#shape-hammer" />
+            </g>
+            <g id="shapeB">
+              <use id="useB" href="#shape-feather" />
+            </g>
+
+            <rect id="ground" x="56" y="544" width="264" height="60" />
+            <line id="ground-line" x1="56" y1="544" x2="320" y2="544" stroke-width="3" />
+          </svg>
+        </div>
+
+        <dl id="readouts">
+          <div class="readout readout-a">
+            <dt>Object A speed</dt>
+            <dd id="speedA">0.0 m/s</dd>
+            <dt>Object A landed</dt>
+            <dd id="landedA">—</dd>
+          </div>
+          <div class="facts facts-a">
+            <dt>Mass</dt>
+            <dd id="massA">—</dd>
+            <dt>Area</dt>
+            <dd id="areaA">—</dd>
+            <dt>Mass ÷ area</dt>
+            <dd id="ratioA">—</dd>
+            <dt>Terminal velocity</dt>
+            <dd id="vtA">—</dd>
+          </div>
+          <div class="readout readout-b">
+            <dt>Object B speed</dt>
+            <dd id="speedB">0.0 m/s</dd>
+            <dt>Object B landed</dt>
+            <dd id="landedB">—</dd>
+          </div>
+          <div class="facts facts-b">
+            <dt>Mass</dt>
+            <dd id="massB">—</dd>
+            <dt>Area</dt>
+            <dd id="areaB">—</dd>
+            <dt>Mass ÷ area</dt>
+            <dd id="ratioB">—</dd>
+            <dt>Terminal velocity</dt>
+            <dd id="vtB">—</dd>
+          </div>
+        </dl>
+      </div>
+
+      <p id="air-note"></p>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>
